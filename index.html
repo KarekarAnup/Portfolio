@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anup Karekar — Researcher in Astrophysics & Space Technology</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/playfair-display@5.0.19/index.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.16/index.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.18/index.min.css" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          serif: ['"Playfair Display"', 'serif'],
+          sans: ['Inter', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        colors: {
+          ink: '#0a0a0f',
+          paper: '#f5f1e8',
+          accent: '#c9a961',
+          accentDim: '#8b7a4a',
+          muted: '#6b6b76',
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0f;
+    color: #e8e6df;
+    overflow-x: hidden;
+  }
+  .font-serif { font-family: 'Playfair Display', serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Starfield */
+  #stars-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+
+  /* Grain overlay */
+  .grain::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.6'/></svg>");
+  }
+
+  /* Section reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Decorative line */
+  .rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,169,97,0.5), transparent);
+  }
+
+  /* Nav link */
+  .nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0;
+    height: 1px;
+    background: #c9a961;
+    transition: width 0.3s ease;
+  }
+  .nav-link:hover { color: #c9a961; }
+  .nav-link:hover::after { width: 100%; }
+
+  /* Publication card */
+  .pub-card {
+    border: 1px solid rgba(201,169,97,0.15);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+    transition: all 0.4s ease;
+  }
+  .pub-card:hover {
+    border-color: rgba(201,169,97,0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 60px -20px rgba(201,169,97,0.15);
+  }
+
+  /* Timeline */
+  .timeline-line {
+    background: linear-gradient(180deg, transparent, rgba(201,169,97,0.4), transparent);
+  }
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #c9a961;
+    box-shadow: 0 0 0 4px rgba(201,169,97,0.15), 0 0 20px rgba(201,169,97,0.4);
+  }
+
+  /* Skill chip */
+  .chip {
+    border: 1px solid rgba(201,169,97,0.25);
+    transition: all 0.3s ease;
+  }
+  .chip:hover {
+    border-color: #c9a961;
+    background: rgba(201,169,97,0.08);
+    transform: translateY(-1px);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #0a0a0f; }
+  ::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #c9a961; }
+
+  /* Hero glow */
+  .hero-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,169,97,0.15) 0%, transparent 60%);
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  /* Section label */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #c9a961;
+  }
+
+  /* Link style */
+  a.anchor-link {
+    color: #c9a961;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(201,169,97,0.3);
+    transition: border-color 0.3s ease;
+  }
+  a.anchor-link:hover { border-color: #c9a961; }
+
+  /* Mobile menu */
+  .mobile-menu {
+    transform: translateX(100%);
+    transition: transform 0.4s ease;
+  }
+  .mobile-menu.open {
+    transform: translateX(0);
+  }
+
+  /* Cursor dot */
+  .cursor-dot {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    background: #c9a961;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: difference;
+    transition: transform 0.15s ease;
+  }
+</style>
+</head>
+<body class="grain">
+
+<canvas id="stars-canvas"></canvas>
+<div class="cursor-dot hidden md:block" id="cursorDot"></div>
+
+<!-- NAV -->
+<nav class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-ink/70 border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-6 md:px-10 py-4 flex items-center justify-between">
+    <a href="#home" class="flex items-center gap-3 group">
+      <div class="w-9 h-9 rounded-full border border-accent/40 flex items-center justify-center font-serif text-accent text-lg group-hover:bg-accent/10 transition">A</div>
+      <div class="hidden sm:block">
+        <div class="font-serif text-sm tracking-wide">Anup Karekar</div>
+        <div class="font-mono text-[10px] text-muted tracking-widest">RESEARCHER · ASTROPHYSICS</div>
+      </div>
+    </a>
+    <div class="hidden md:flex items-center gap-8 text-sm text-white/70">
+      <a href="#about" class="nav-link">About</a>
+      <a href="#publications" class="nav-link">Publications</a>
+      <a href="#experience" class="nav-link">Experience</a>
+      <a href="#education" class="nav-link">Education</a>
+      <a href="#skills" class="nav-link">Skills</a>
+      <a href="#engagements" class="nav-link">Engagements</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </div>
+    <button id="menuBtn" class="md:hidden text-white/80" aria-label="Menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div id="mobileMenu" class="mobile-menu fixed top-0 right-0 bottom-0 w-72 bg-ink/95 backdrop-blur-xl z-50 border-l border-white/10 p-8 md:hidden">
+  <button id="closeMenu" class="absolute top-4 right-4 text-white/70">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <div class="mt-16 flex flex-col gap-5 text-lg">
+    <a href="#about" class="nav-link">About</a>
+    <a href="#publications" class="nav-link">Publications</a>
+    <a href="#experience" class="nav-link">Experience</a>
+    <a href="#education" class="nav-link">Education</a>
+    <a href="#skills" class="nav-link">Skills</a>
+    <a href="#engagements" class="nav-link">Engagements</a>
+    <a href="#contact" class="nav-link">Contact</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="home" class="relative min-h-screen flex items-center justify-center px-6 md:px-10 pt-24 pb-16">
+  <div class="hero-glow top-1/3 -left-40"></div>
+  <div class="hero-glow bottom-0 right-0 opacity-60"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto text-center">
+    <div class="font-mono text-[10px] tracking-[0.4em] text-accent mb-8 reveal">
+      <span class="inline-block w-8 h-px bg-accent align-middle mr-3"></span>
+      RESEARCH PORTFOLIO · EST. 2020
+      <span class="inline-block w-8 h-px bg-accent align-middle ml-3"></span>
+    </div>
+
+    <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl leading-[1.05] tracking-tight reveal">
+      Anup <span class="italic text-accent">Karekar</span>
+    </h1>
+
+    <p class="mt-8 text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed reveal">
+      Researcher at the intersection of <span class="text-white">astrophysics</span>, <span class="text-white">machine learning</span>, and <span class="text-white">space instrumentation</span> — probing pulsars, black holes, and the ionosphere from Kolhapur to Colorado.
+    </p>
+
+    <div class="mt-12 flex flex-wrap items-center justify-center gap-4 reveal">
+      <a href="#publications" class="px-6 py-3 bg-accent text-ink font-medium text-sm tracking-wide hover:bg-accent/90 transition">
+        View Publications →
+      </a>
+      <a href="#contact" class="px-6 py-3 border border-white/20 text-white/80 text-sm tracking-wide hover:border-accent hover:text-accent transition">
+        Get in Touch
+      </a>
+    </div>
+
+    <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 max-w-3xl mx-auto reveal">
+      <div>
+        <div class="font-serif text-3xl md:text-4xl text-accent">04</div>
+        <div class="text-xs text-white/50 mt-1 tracking-wide">Publications</div>
+      </div>
+      <div>
+        <div class="font-serif text-3xl md:text-4xl text-accent">05</div>
+        <div class="text-xs text-white/50 mt-1 tracking-wide">Research Roles</div>
+      </div>
+      <div>
+        <div class="font-serif text-3xl md:text-4xl text-accent">06+</div>
+        <div class="text-xs text-white/50 mt-1 tracking-wide">Years Research</div>
+      </div>
+      <div>
+        <div class="font-serif text-3xl md:text-4xl text-accent">03</div>
+        <div class="text-xs text-white/50 mt-1 tracking-wide">Countries</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40">
+    <div class="font-mono text-[10px] tracking-widest">SCROLL</div>
+    <div class="w-px h-10 bg-gradient-to-b from-accent/60 to-transparent"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="grid md:grid-cols-12 gap-10 items-start">
+      <div class="md:col-span-4 reveal">
+        <div class="section-label mb-4">§ 01 — About</div>
+        <h2 class="font-serif text-4xl md:text-5xl leading-tight">
+          A researcher <br><span class="italic text-accent">curious</span> about the cosmos.
+        </h2>
+      </div>
+      <div class="md:col-span-8 space-y-6 text-white/70 leading-relaxed reveal">
+        <p class="text-lg">
+          I am a physicist and researcher based in Kolhapur, India, currently pursuing research in <span class="text-white">theoretical astrophysics</span> and <span class="text-white">space-based instrumentation</span>. My work spans the analysis of pulsar candidates, the orbital mechanics of black holes with dark matter halos, and the development of real-time GNSS ionospheric forecasting models.
+        </p>
+        <p>
+          Beyond theory, I lead the <span class="text-accent">Great Lunar Expedition</span> at the Colorado Space Grant Consortium — a team deploying a LunaSat to the Lunar South Pole to study the Moon's magnetic, thermal, and seismic properties. I have also conducted research at the <span class="text-white">Green Bank Observatory</span> (USA) and the <span class="text-white">Instituto de Astrofísica e Ciências do Espaço</span> (Portugal).
+        </p>
+        <p>
+          I hold an M.Sc. in Physics from the Institute of Science, Mumbai (CGPA 9.13), and currently serve as a Lecturer at Rajaram College, where I teach and mentor the next generation of physicists.
+        </p>
+        <div class="pt-4 flex flex-wrap gap-6 text-sm">
+          <div>
+            <div class="text-white/40 text-xs tracking-widest mb-1">BASED IN</div>
+            <div class="text-white">Kolhapur, India</div>
+          </div>
+          <div>
+            <div class="text-white/40 text-xs tracking-widest mb-1">FOCUS</div>
+            <div class="text-white">Astrophysics · ML · Space Tech</div>
+          </div>
+          <div>
+            <div class="text-white/40 text-xs tracking-widest mb-1">STATUS</div>
+            <div class="text-accent">● Open to Collaboration</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule max-w-6xl mx-auto"></div>
+
+<!-- PUBLICATIONS -->
+<section id="publications" class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-16 reveal">
+      <div>
+        <div class="section-label mb-4">§ 02 — Publications & Preprints</div>
+        <h2 class="font-serif text-4xl md:text-5xl leading-tight">
+          Selected <span class="italic text-accent">research</span> output.
+        </h2>
+      </div>
+      <div class="font-mono text-xs text-white/40 mt-4 md:mt-0">04 WORKS · 2022 — 2026</div>
+    </div>
+
+    <div class="space-y-5">
+      <!-- Pub 1 -->
+      <article class="pub-card rounded-lg p-6 md:p-8 reveal">
+        <div class="flex flex-wrap items-start justify-between gap-4 mb-3">
+          <div class="font-mono text-xs text-accent tracking-widest">[1] · PREPRINT · 2026</div>
+          <span class="text-[10px] px-2 py-1 border border-accent/30 text-accent rounded-full font-mono tracking-wider">MACHINE LEARNING</span>
+        </div>
+        <h3 class="font-serif text-xl md:text-2xl leading-snug text-white mb-3">
+          Enhancing Pulsar Candidate Identification in Htru2 Dataset Using ANN, SVR, and GBR Without SMOTE-Based Resampling
+        </h3>
+        <p class="text-sm text-white/60 mb-4">Karekar, A. S. — Single-author preprint proposing a resampling-free deep learning pipeline for pulsar candidate classification on the HTRU2 dataset.</p>
+        <a href="https://dx.doi.org/10.2139/ssrn.5280215" target="_blank" class="anchor-link text-xs font-mono tracking-wider">DOI: 10.2139/SSRN.5280215 →</a>
+      </article>
+
+      <!-- Pub 2 -->
+      <article class="pub-card rounded-lg p-6 md:p-8 reveal">
+        <div class="flex flex-wrap items-start justify-between gap-4 mb-3">
+          <div class="font-mono text-xs text-accent tracking-widest">[2] · SUBMITTED · PRD · 2026</div>
+          <span class="text-[10px] px-2 py-1 border border-accent/30 text-accent rounded-full font-mono tracking-wider">THEORETICAL PHYSICS</span>
+        </div>
+        <h3 class="font-serif text-xl md:text-2xl leading-snug text-white mb-3">
+          Upper Bound on the ISCO Radius of Static Black Holes with a Dark Matter Halo
+        </h3>
+        <p class="text-sm text-white/60 mb-4">Karekar, A. S. & Das, S. P. — First-author manuscript submitted to <em>Physical Review D</em>, deriving bounds on the innermost stable circular orbit in black hole–dark matter systems.</p>
+        <a href="http://arxiv.org/abs/2610.24673" target="_blank" class="anchor-link text-xs font-mono tracking-wider">ARXIV: 2610.24673 →</a>
+      </article>
+
+      <!-- Pub 3 -->
+      <article class="pub-card rounded-lg p-6 md:p-8 reveal">
+        <div class="flex flex-wrap items-start justify-between gap-4 mb-3">
+          <div class="font-mono text-xs text-accent tracking-widest">[3] · IN PREPARATION</div>
+          <span class="text-[10px] px-2 py-1 border border-accent/30 text-accent rounded-full font-mono tracking-wider">ORBITAL MECHANICS</span>
+        </div>
+        <h3 class="font-serif text-xl md:text-2xl leading-snug text-white mb-3">
+          Possible ISCO Points for the Variable Values of Angular Momentum and Energy of Particle
+        </h3>
+        <p class="text-sm text-white/60 mb-4">Karekar, A. S. & Das, S. P. — Analytical exploration of ISCO conditions under variable angular momentum and energy regimes.</p>
+      </article>
+
+      <!-- Pub 4 -->
+      <article class="pub-card rounded-lg p-6 md:p-8 reveal">
+        <div class="flex flex-wrap items-start justify-between gap-4 mb-3">
+          <div class="font-mono text-xs text-accent tracking-widest">[4] · SUBMITTED · RADIO SCIENCE · 2026</div>
+          <span class="text-[10px] px-2 py-1 border border-accent/30 text-accent rounded-full font-mono tracking-wider">IONOSPHERIC PHYSICS</span>
+        </div>
+        <h3 class="font-serif text-xl md:text-2xl leading-snug text-white mb-3">
+          Ionospheric Disturbances over the Indian Low-Latitude Region during the November 2025 G4 Geomagnetic Storm: Observations from a Dense SOI CORS Network
+        </h3>
+        <p class="text-sm text-white/60 mb-4">Karekar, A. S. & Shetti, D. — Manuscript ID 2026RS008881 submitted to the <em>Radio Science Journal</em>, reporting VTEC anomalies during the G4 geomagnetic storm.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div class="rule max-w-6xl mx-auto"></div>
+
+<!-- EXPERIENCE -->
+<section id="experience" class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-16 reveal">
+      <div class="section-label mb-4">§ 03 — Research & Work Experience</div>
+      <h2 class="font-serif text-4xl md:text-5xl leading-tight">
+        A trajectory across <span class="italic text-accent">institutions</span>.
+      </h2>
+    </div>
+
+    <div class="relative">
+      <div class="absolute left-[19px] md:left-1/2 top-0 bottom-0 w-px timeline-line"></div>
+
+      <div class="space-y-12">
+
+        <!-- Item 1 -->
+        <div class="relative grid md:grid-cols-2 gap-8 reveal">
+          <div class="md:text-right md:pr-12">
+            <div class="font-mono text-xs text-accent tracking-widest mb-2">MAR 2026 — PRESENT</div>
+            <h3 class="font-serif text-2xl text-white">Shivaji University</h3>
+            <div class="text-sm text-white/60 mt-1">Research Intern · Kolhapur, India</div>
+            <div class="text-xs text-white/40 mt-1">Under Dr. Siba Prasad Das</div>
+          </div>
+          <div class="absolute left-[15px] md:left-1/2 top-2 -translate-x-1/2 timeline-dot"></div>
+          <div class="md:pl-12">
+            <p class="text-white/70 leading-relaxed">Working on theoretical physics research on effective potential, orbital stability, and ISCO analysis around compact objects.</p>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="relative grid md:grid-cols-2 gap-8 reveal">
+          <div class="md:text-right md:pr-12 md:order-1 order-2">
+            <p class="text-white/70 leading-relaxed">Developing a real-time GNSS-based nowcasting and short-term forecasting model for ionospheric VTEC over the Indian sector, alongside airglow image processing and analysis.</p>
+          </div>
+          <div class="absolute left-[15px] md:left-1/2 top-2 -translate-x-1/2 timeline-dot"></div>
+          <div class="md:pl-12 md:text-left md:order-2 order-1">
+            <div class="font-mono text-xs text-accent tracking-widest mb-2">MAR 2025 — PRESENT</div>
+            <h3 class="font-serif text-2xl text-white">Smt. Kasturbai Walchan College</h3>
+            <div class="text-sm text-white/60 mt-1">Research Intern · Sangli, India</div>
+            <div class="text-xs text-white/40 mt-1">Under Dr. D. Shetti</div>
+          </div>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="relative grid md:grid-cols-2 gap-8 reveal">
+          <div class="md:text-right md:pr-12">
+            <div class="font-mono text-xs text-accent tracking-widest mb-2">OCT 2022 — PRESENT</div>
+            <h3 class="font-serif text-2xl text-white">Colorado Space Grant Consortium</h3>
+            <div class="text-sm text-white/60 mt-1">Project Team Head · Colorado, USA</div>
+          </div>
+          <div class="absolute left-[15px] md:left-1/2 top-2 -translate-x-1/2 timeline-dot"></div>
+          <div class="md:pl-12">
+            <ul class="text-white/70 leading-relaxed space-y-2 text-sm list-none">
+              <li>→ Leading the Great Lunar Expedition deploying a LunaSat at the Lunar South Pole to study magnetic, thermal, electrostatic, and seismic properties of the Moon.</li>
+              <li>→ Developed a LoRa-based telemetry link between LunaSat and a Raspberry Pi ground station.</li>
+              <li>→ Implemented real-time Python telemetry acquisition pipeline for logging, visualization, and spacecraft monitoring.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="relative grid md:grid-cols-2 gap-8 reveal">
+          <div class="md:text-right md:pr-12 md:order-1 order-2">
+            <p class="text-white/70 leading-relaxed">Conducted orbit detection and determination of the period derivative (Ṗ) from the spin-period variation of PSR J0437-4715 using the ATNF Pulsar Catalogue.</p>
+          </div>
+          <div class="absolute left-[15px] md:left-1/2 top-2 -translate-x-1/2 timeline-dot"></div>
+          <div class="md:pl-12 md:text-left md:order-2 order-1">
+            <div class="font-mono text-xs text-accent tracking-widest mb-2">OCT — DEC 2023</div>
+            <h3 class="font-serif text-2xl text-white">Green Bank Observatory</h3>
+            <div class="text-sm text-white/60 mt-1">Summer Research Student · West Virginia, USA</div>
+          </div>
+        </div>
+
+        <!-- Item 5 -->
+        <div class="relative grid md:grid-cols-2 gap-8 reveal">
+          <div class="md:text-right md:pr-12">
+            <div class="font-mono text-xs text-accent tracking-widest mb-2">JUL — AUG 2022</div>
+            <h3 class="font-serif text-2xl text-white">Instituto de Astrofísica e Ciências do Espaço</h3>
+            <div class="text-sm text-white/60 mt-1">Research Student · Porto, Portugal</div>
+          </div>
+          <div class="absolute left-[15px] md:left-1/2 top-2 -translate-x-1/2 timeline-dot"></div>
+          <div class="md:pl-12">
+            <p class="text-white/70 leading-relaxed">Conducted the MOSFIRE Deep Evolution Field (MOSDEF) Survey, performing rest-frame optical spectroscopy on ~1500 Hα-selected galaxies in the redshift range 1.37 – 3.80.</p>
+          </div>
+        </div>
+
+        <!-- Lecturer -->
+        <div class="relative grid md:grid-cols-2 gap-8 reveal">
+          <div class="md:text-right md:pr-12 md:order-1 order-2">
+            <p class="text-white/70 leading-relaxed">Teaching physics at the undergraduate level, mentoring students in observational and computational methods.</p>
+          </div>
+          <div class="absolute left-[15px] md:left-1/2 top-2 -translate-x-1/2 timeline-dot"></div>
+          <div class="md:pl-12 md:text-left md:order-2 order-1">
+            <div class="font-mono text-xs text-accent tracking-widest mb-2">AUG 2022 — PRESENT</div>
+            <h3 class="font-serif text-2xl text-white">Rajaram College</h3>
+            <div class="text-sm text-white/60 mt-1">Lecturer · Kolhapur, India</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule max-w-6xl mx-auto"></div>
+
+<!-- EDUCATION -->
+<section id="education" class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-16 reveal">
+      <div class="section-label mb-4">§ 04 — Education</div>
+      <h2 class="font-serif text-4xl md:text-5xl leading-tight">
+        Academic <span class="italic text-accent">foundation</span>.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="pub-card rounded-lg p-7 reveal">
+        <div class="flex items-start justify-between mb-4">
+          <div class="font-mono text-xs text-accent tracking-widest">2020 — 2022</div>
+          <div class="text-accent font-serif text-2xl">9.13</div>
+        </div>
+        <h3 class="font-serif text-2xl text-white">Master of Science — Physics</h3>
+        <div class="text-sm text-white/60 mt-1">Institute of Science, Mumbai</div>
+        <div class="mt-4 text-sm text-white/70 leading-relaxed">
+          <span class="text-white/40 text-xs tracking-widest">THESIS</span><br>
+          <em>AGN Detection in NGC 4725 Galaxy Using Multi-Wavelength Analysis</em>
+        </div>
+      </div>
+
+      <div class="pub-card rounded-lg p-7 reveal">
+        <div class="flex items-start justify-between mb-4">
+          <div class="font-mono text-xs text-accent tracking-widest">2017 — 2020</div>
+          <div class="text-accent font-serif text-2xl">8.00</div>
+        </div>
+        <h3 class="font-serif text-2xl text-white">Bachelor of Science — Physics</h3>
+        <div class="text-sm text-white/60 mt-1">Rajaram College, Kolhapur</div>
+        <div class="mt-4 text-sm text-white/70 leading-relaxed">
+          <span class="text-white/40 text-xs tracking-widest">THESIS</span><br>
+          <em>Comprehensive Analysis of the Supernova Remnant CAS-A Using SAOImage DS9: Expansion Rate, Spectroscopic Analysis, and Classification</em>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule max-w-6xl mx-auto"></div>
+
+<!-- SKILLS -->
+<section id="skills" class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-16 reveal">
+      <div class="section-label mb-4">§ 05 — Technical Skills</div>
+      <h2 class="font-serif text-4xl md:text-5xl leading-tight">
+        Tools of the <span class="italic text-accent">trade</span>.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-10">
+      <div class="reveal">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-px bg-accent"></div>
+          <h3 class="font-mono text-xs text-accent tracking-[0.3em]">PROGRAMMING & ML</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Python</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Machine Learning</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Deep Learning</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Computer Vision</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">ANN</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">DNN</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">CNNs</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">GANs</span>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-px bg-accent"></div>
+          <h3 class="font-mono text-xs text-accent tracking-[0.3em]">SCIENTIFIC COMPUTING</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">NumPy</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Pandas</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Matplotlib</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Astropy</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">FITS Data Analysis</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Data Visualization</span>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-px bg-accent"></div>
+          <h3 class="font-mono text-xs text-accent tracking-[0.3em]">EMBEDDED SYSTEMS</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Raspberry Pi</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Arduino</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">ESP32</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Sensor Interfacing</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">LoRa Communication</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Serial Communication</span>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-px bg-accent"></div>
+          <h3 class="font-mono text-xs text-accent tracking-[0.3em]">AUDIO & SYSTEMS</h3>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Digital Audio Acquisition</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Microphone Interfacing</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Speech-to-Text Pipelines</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Linux</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm text-white/80">Windows</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule max-w-6xl mx-auto"></div>
+
+<!-- ENGAGEMENTS -->
+<section id="engagements" class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-16 reveal">
+      <div class="section-label mb-4">§ 06 — Academic Engagements & Teaching</div>
+      <h2 class="font-serif text-4xl md:text-5xl leading-tight">
+        Teaching, <span class="italic text-accent">outreach</span>, & service.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="pub-card rounded-lg p-7 reveal">
+        <div class="font-mono text-xs text-accent tracking-widest mb-2">FEB 10, 2026</div>
+        <h3 class="font-serif text-xl text-white mb-1">Invited Expert Talk — AI Impact Summit 2026</h3>
+        <div class="text-sm text-white/60 mb-3">Sanjay Ghodawat Institute, Kolhapur</div>
+        <p class="text-sm text-white/70">Delivered an expert lecture on AI applications in space research and applied science, engaging students and faculty on emerging Space-AI technologies.</p>
+      </div>
+
+      <div class="pub-card rounded-lg p-7 reveal">
+        <div class="font-mono text-xs text-accent tracking-widest mb-2">JAN 27 — 31, 2026</div>
+        <h3 class="font-serif text-xl text-white mb-1">Resource Person — Applications of Python in Physics</h3>
+        <div class="text-sm text-white/60 mb-3">Dept. of Physics, Shivaji University</div>
+        <p class="text-sm text-white/70">Delivered lectures on Python for physics and scientific computing, explaining complex coding concepts in the context of physical phenomena.</p>
+      </div>
+
+      <div class="pub-card rounded-lg p-7 reveal">
+        <div class="font-mono text-xs text-accent tracking-widest mb-2">2025 — 2026</div>
+        <h3 class="font-serif text-xl text-white mb-1">Organizer & Resource Person — Intro to Python</h3>
+        <div class="text-sm text-white/60 mb-3">IAPT with Rajaram College, Kolhapur</div>
+        <p class="text-sm text-white/70">Conducted and organized training sessions in Python programming, designing beginner-friendly computational lessons.</p>
+      </div>
+
+      <div class="pub-card rounded-lg p-7 reveal">
+        <div class="font-mono text-xs text-accent tracking-widest mb-2">2024 — PRESENT</div>
+        <h3 class="font-serif text-xl text-white mb-1">India Ambassador — IAAC</h3>
+        <div class="text-sm text-white/60 mb-3">International Astronomy & Astrophysics Competition</div>
+        <p class="text-sm text-white/70">Designed and delivered beginner-friendly astronomy lectures and conducted Night Sky Observations for students across India.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule max-w-6xl mx-auto"></div>
+
+<!-- CONFERENCES -->
+<section class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-16 reveal">
+      <div class="section-label mb-4">§ 07 — Conferences, Schools & Certifications</div>
+      <h2 class="font-serif text-4xl md:text-5xl leading-tight">
+        Scholarly <span class="italic text-accent">dialogue</span>.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-10">
+      <div class="reveal">
+        <h3 class="font-mono text-xs text-accent tracking-[0.3em] mb-5">CONFERENCES & SYMPOSIA</h3>
+        <ul class="space-y-5">
+          <li class="border-l border-accent/30 pl-5">
+            <div class="font-serif text-lg text-white">ASI Symposium: Astronomy from Moon in the era of Indian lunar missions</div>
+            <div class="text-sm text-white/60 mt-1">Raman Research Institute, Bangalore · Dec 2–4, 2024</div>
+          </li>
+          <li class="border-l border-accent/30 pl-5">
+            <div class="font-serif text-lg text-white">India-Japan Science and Technology Conclave</div>
+            <div class="text-sm text-white/60 mt-1">International Conference on Frontier Areas of Science and Technology · Aug 2023</div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="reveal">
+        <h3 class="font-mono text-xs text-accent tracking-[0.3em] mb-5">SCHOOLS & WORKSHOPS</h3>
+        <ul class="space-y-5">
+          <li class="border-l border-accent/30 pl-5">
+            <div class="font-serif text-lg text-white">Roman Galactic Plane Survey Workshop</div>
+            <div class="text-sm text-white/60 mt-1">Feb — Mar 2025</div>
+          </li>
+          <li class="border-l border-accent/30 pl-5">
+            <div class="font-serif text-lg text-white">PyHEP Workshop 2022</div>
+            <div class="text-sm text-white/60 mt-1">HEP Software Foundation · Aug — Sep 2022</div>
+          </li>
+          <li class="border-l border-accent/30 pl-5">
+            <div class="font-serif text-lg text-white">SOKENDAI Asian Winter School 2022</div>
+            <div class="text-sm text-white/60 mt-1">National Astronomical Observatory of Japan · Dec 2021 — Jan 2022</div>
+          </li>
+          <li class="border-l border-accent/30 pl-5">
+            <div class="font-serif text-lg text-white">HPC for Astronomy & Astrophysics</div>
+            <div class="text-sm text-white/60 mt-1">IIT Kharagpur · Aug — Sep 2020</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule max-w-6xl mx-auto"></div>
+
+<!-- RECOMMENDATIONS -->
+<section class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-16 reveal">
+      <div class="section-label mb-4">§ 08 — Mentors & Recommendations</div>
+      <h2 class="font-serif text-4xl md:text-5xl leading-tight">
+        Guided by <span class="italic text-accent">distinguished</span> scholars.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="pub-card rounded-lg p-7 reveal">
+        <svg class="w-8 h-8 text-accent/60 mb-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-1.659 4.907-2.639.904-1.064 1.4-2.18 1.4-4.211h-4.31v-8.999h7.981zm11.999 0v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-1.659 4.907-2.639.904-1.064 1.399-2.18 1.399-4.211h-4.31v-8.999h7.982z"/></svg>
+        <p class="text-white/70 leading-relaxed italic mb-5">
+          Guided my research on theoretical astrophysics — strengthening my research strategies and career planning, enhancing my contributions to astrophysical studies.
+        </p>
+        <div class="flex items-center gap-3 pt-4 border-t border-white/10">
+          <div class="w-10 h-10 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center font-serif text-accent">S</div>
+          <div>
+            <div class="font-serif text-white">Dr. Siba Prasad Das</div>
+            <div class="text-xs text-white/50">Research Professor, Shivaji University</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub-card rounded-lg p-7 reveal">
+        <svg class="w-8 h-8 text-accent/60 mb-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-1.659 4.907-2.639.904-1.064 1.4-2.18 1.4-4.211h-4.31v-8.999h7.981zm11.999 0v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-1.659 4.907-2.639.904-1.064 1.399-2.18 1.399-4.211h-4.31v-8.999h7.982z"/></svg>
+        <p class="text-white/70 leading-relaxed italic mb-5">
+          Mentor to my work developing a real-time GNSS-based nowcasting and short-term forecasting model for ionospheric VTEC over India, incorporating airglow image processing and analysis.
+        </p>
+        <div class="flex items-center gap-3 pt-4 border-t border-white/10">
+          <div class="w-10 h-10 rounded-full bg-accent/10 border border-accent/30 flex items-center justify-center font-serif text-accent">D</div>
+          <div>
+            <div class="font-serif text-white">Dr. D. J. Shetti</div>
+            <div class="text-xs text-white/50">Associate Professor, Smt. Kasturbai Walchan College</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="relative py-24 md:py-32 px-6 md:px-10">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="section-label mb-4 reveal">§ 09 — Correspondence</div>
+    <h2 class="font-serif text-5xl md:text-7xl leading-tight reveal">
+      Let's <span class="italic text-accent">collaborate</span>.
+    </h2>
+    <p class="mt-6 text-white/60 max-w-xl mx-auto reveal">
+      For research collaborations, invited talks, or academic correspondence — I welcome the conversation.
+    </p>
+
+    <div class="mt-12 grid sm:grid-cols-2 md:grid-cols-4 gap-4 reveal">
+      <a href="mailto:karekaranup28@gmail.com" class="pub-card rounded-lg p-5 text-left hover:border-accent/50 transition">
+        <div class="text-xs text-white/40 tracking-widest mb-2">EMAIL</div>
+        <div class="text-sm text-white break-all">karekaranup28@gmail.com</div>
+      </a>
+      <a href="tel:+919130313005" class="pub-card rounded-lg p-5 text-left hover:border-accent/50 transition">
+        <div class="text-xs text-white/40 tracking-widest mb-2">PHONE</div>
+        <div class="text-sm text-white">+91 91303 13005</div>
+      </a>
+      <a href="https://linkedin.com/in/anup-karekar-7b72901b7" target="_blank" class="pub-card rounded-lg p-5 text-left hover:border-accent/50 transition">
+        <div class="text-xs text-white/40 tracking-widest mb-2">LINKEDIN</div>
+        <div class="text-sm text-white">anup-karekar</div>
+      </a>
+    </div>
+
+    <div class="mt-16 text-xs text-white/30 font-mono tracking-widest">
+      KOLHAPUR · 15.7°N  74.5°E
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-white/5 py-10 px-6 md:px-10">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/40">
+    <div class="font-mono tracking-widest">© 2026 ANUP KAREKAR · ALL RIGHTS RESERVED</div>
+    <div class="font-mono tracking-widest">CRAFTED WITH PRECISION · NOVEMBER 2026</div>
+  </div>
+</footer>
+
+<script>
+  // Starfield
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const count = Math.floor((canvas.width * canvas.height) / 9000);
+    stars = [];
+    for (let i = 0; i < count; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.2 + 0.2,
+        a: Math.random() * 0.8 + 0.2,
+        s: Math.random() * 0.02 + 0.005,
+        p: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const t = Date.now() * 0.001;
+    for (const st of stars) {
+      const alpha = st.a * (0.6 + 0.4 * Math.sin(t * st.s * 20 + st.p));
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(232, 230, 223, ${alpha})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  resize();
+  draw();
+  window.addEventListener('resize', resize);
+
+  // Reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  // Custom cursor
+  const dot = document.getElementById('cursorDot');
+  if (dot) {
+    let mx = 0, my = 0, dx = 0, dy = 0;
+    window.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; });
+    function animate() {
+      dx += (mx - dx) * 0.2;
+      dy += (my - dy) * 0.2;
+      dot.style.transform = `translate(${dx - 3}px, ${dy - 3}px)`;
+      requestAnimationFrame(animate);
+    }
+    animate();
+    document.querySelectorAll('a, button, .chip, .pub-card').forEach((el) => {
+      el.addEventListener('mouseenter', () => dot.style.transform += ' scale(3)');
+      el.addEventListener('mouseleave', () => dot.style.transform = dot.style.transform.replace(' scale(3)', ''));
+    });
+  }
+
+  // Mobile menu
+  const menuBtn = document.getElementById('menuBtn');
+  const closeMenu = document.getElementById('closeMenu');
+  const mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
+  closeMenu.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu.classList.remove('open')));
+</script>
+
+</body>
+</html>
